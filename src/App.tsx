@@ -16,7 +16,9 @@ function App() {
       <div
         style={{ width: "40vw", height: "100vh", background: "#FF1100" }}
       ></div>
-      <Game />
+      <div>
+        <Game />
+      </div>
       <div
         style={{ width: "40vw", height: "100vh", background: "#00FF0F" }}
       ></div>

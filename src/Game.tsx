@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import litecanvas from "litecanvas";
+import { Player as ControledShape } from "./localTypes";
 // Tip: litecanvas can render into your own <canvas>
 // instead of creating one globally.
 export default function Game() {
@@ -14,18 +15,16 @@ export default function Game() {
       height: 400,
     });
     // local game state
-    let bg: number, grid: number[][];
+    let bg: number, grid: number[][], currentShape: ControledShape;
     const cols = 10,
       rows = 20;
     // this function runs once at the beginning
     function init() {
       bg = 0; // the color #0 (black)
+      currentShape = new ControledShape();
       grid = Array.from({ length: rows }, () =>
-        Array.from({ length: cols }, () => Math.floor(Math.random() * 5))
+        Array.from({ length: cols }, () => 3)
       );
-      // radius = engine.W / 10; // canvas.width / 10
-      //   posx = engine.W / 2; // center X or canvas.width / 2
-      //   posy = engine.H / 2; // center Y or canvas.height / 2
     }
 
     // this function detect clicks/touches
@@ -38,11 +37,31 @@ export default function Game() {
 
     // put the game logic in this function
     function update(dt: number) {
-      // make the circle falls 200 pixels per second
-      //TODO
+      if (
+        engine &&
+        typeof engine.iskeypressed === "function" &&
+        engine.iskeypressed("w")
+      ) {
+        currentShape.rotate();
+      }
+      if (
+        engine &&
+        typeof engine.iskeypressed === "function" &&
+        engine.iskeypressed("a") &&
+        currentShape.mainPosition.x > 0
+      ) {
+        currentShape.mainPosition.x -= 1;
+      }
+      if (
+        engine &&
+        typeof engine.iskeypressed === "function" &&
+        engine.iskeypressed("d") &&
+        currentShape.mainPosition.x < 9
+      ) {
+        currentShape.mainPosition.x += 1;
+      }
     }
 
-    // put the game rendering in this function
     function draw() {
       let cell_size = engine.W / cols;
       engine.cls(bg);
@@ -52,6 +71,16 @@ export default function Game() {
           const y_pos = 0 + y * cell_size;
           engine.rect(x_pos, y_pos, cell_size, cell_size, 3);
           engine.rectfill(x_pos, y_pos, cell_size, cell_size, grid[y][x]);
+        }
+        const currentPositions = currentShape.generateCurrentPositions();
+        for (let i = 0; i < 4; i++) {
+          engine.rectfill(
+            currentPositions[i].x * cell_size,
+            currentPositions[i].y * cell_size,
+            cell_size,
+            cell_size,
+            5
+          );
         }
       }
 

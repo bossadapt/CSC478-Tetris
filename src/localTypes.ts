@@ -1,4 +1,4 @@
-class Position {
+export class Position {
   public x: number = 0;
   public y: number = 0;
   constructor(x: number, y: number) {
@@ -87,11 +87,13 @@ function rotateOffset(rotationIdx: number, x: number, y: number): Position {
   }
 }
 
-export class Player {
+export class ControlledShape {
   public mainPosition: Position = new Position(5, 5);
+  public color = 5;
   private shapeChosenIdx: number = 0;
   private rotationIdx: number = 0;
   constructor() {
+    this.color = Math.floor(Math.random() * 10) + 5;
     this.shapeChosenIdx = Math.floor(
       Math.random() * GENERIC_SHAPE_OFFSETS.length
     );
@@ -100,18 +102,28 @@ export class Player {
   rotate() {
     this.rotationIdx = (this.rotationIdx + 1) % 4;
   }
-  generateCurrentPositions(): Position[] {
+  peekRotate() {
+    const tempRot = (this.rotationIdx + 1) % 4;
+    return this.generateCurrentPositions(tempRot);
+  }
+  peekXMovement(xOffset: number) {
+    return this.generateCurrentPositions(undefined, xOffset);
+  }
+  generateCurrentPositions(rotation?: number, xOffset: number = 0): Position[] {
     let poses: Position[] = [];
+    if (rotation === undefined) {
+      rotation = this.rotationIdx;
+    }
     for (let i = 0; i < 4; i++) {
       let rotatedOffset = rotateOffset(
-        this.rotationIdx,
+        rotation,
         GENERIC_SHAPE_OFFSETS[this.shapeChosenIdx][i].x,
         GENERIC_SHAPE_OFFSETS[this.shapeChosenIdx][i].y
       );
 
       poses.push(
         new Position(
-          rotatedOffset.x + this.mainPosition.x,
+          rotatedOffset.x + this.mainPosition.x + xOffset,
           rotatedOffset.y + this.mainPosition.y
         )
       );

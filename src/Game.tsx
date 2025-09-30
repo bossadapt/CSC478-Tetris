@@ -1,8 +1,7 @@
 import { useEffect, useRef } from "react";
 import litecanvas from "litecanvas";
-import { Player as ControledShape } from "./localTypes";
-// Tip: litecanvas can render into your own <canvas>
-// instead of creating one globally.
+import { ControlledShape as ControledShape, Position } from "./localTypes";
+// instead of creating one globally.'
 export default function Game() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
@@ -16,17 +15,67 @@ export default function Game() {
     });
     // local game state
     let bg: number, grid: number[][], currentShape: ControledShape;
-    const cols = 10,
-      rows = 20;
+    const COLS = 10,
+      ROWS = 20;
+
+    const CELL_SIZE = engine.W / COLS;
     // this function runs once at the beginning
     function init() {
       bg = 0; // the color #0 (black)
       currentShape = new ControledShape();
-      grid = Array.from({ length: rows }, () =>
-        Array.from({ length: cols }, () => 3)
+      grid = Array.from({ length: ROWS }, () =>
+        Array.from({ length: COLS }, () => 3)
       );
     }
+    function moveToNextShape(currentPositions: Position[], color: number) {
+      //draw shape to board
+      for (let i = 0; i < currentPositions.length; i++) {
+        const x = currentPositions[i].x;
+        const y = Math.ceil(currentPositions[i].y) - 1;
+        //check if it's even entered the board
+        if (y > 0) {
+          // there is something becides an empty space in that grid
+          grid[y][x] = color;
+        }
+      }
+      // clear out lines that are done
+      // TODO: go line by line and drop the blocks down if a line is cleared
+      // for (let y = 0; y < ROWS; y++) {
+      //   for(let x = )
+      // }
+      // spawn in the next one
+      currentShape = new ControledShape();
+    }
 
+    function hasCollided(currentPositions: Position[]): boolean {
+      const currentPositionsY = currentPositions.map((pos) => {
+        return pos.y;
+      });
+      const currentPositionsX = currentPositions.map((pos) => {
+        return pos.x;
+      });
+      const currentMinX = Math.min(...currentPositionsX);
+      const currentMaxY = Math.ceil(Math.max(...currentPositionsY));
+      const currentMaxX = Math.max(...currentPositionsX);
+      // boundaries check
+      if (currentMaxX > COLS - 1 || currentMinX < 0 || currentMaxY > ROWS - 1) {
+        return true;
+      }
+
+      // other shapes check
+      for (let i = 0; i < currentPositions.length; i++) {
+        const x = currentPositions[i].x;
+        const y = Math.ceil(currentPositions[i].y);
+        //check if it's even entered the board
+        if (y > 0) {
+          // there is something becides an empty space in that grid
+          if (grid[y][x] !== 3) {
+            return true;
+          }
+        }
+      }
+      return false;
+    }
     // this function detect clicks/touches
     // function tapped(x: number, y: number) {
     //   // changes the circle position
@@ -34,52 +83,67 @@ export default function Game() {
     //   posx = x;
     //   posy = y;
     // }
-
     // put the game logic in this function
     function update(dt: number) {
+      // y logic
+      currentShape.mainPosition.y += dt * 1;
+      if (
+        engine &&
+        typeof engine.iskeydown === "function" &&
+        engine.iskeydown("s")
+      ) {
+        currentShape.mainPosition.y += dt * 5;
+      }
+      const currentPositions = currentShape.generateCurrentPositions();
+      if (hasCollided(currentPositions)) {
+        moveToNextShape(currentPositions, currentShape.color);
+      }
+
+      // rotate logic
       if (
         engine &&
         typeof engine.iskeypressed === "function" &&
         engine.iskeypressed("w")
       ) {
-        currentShape.rotate();
+        if (!hasCollided(currentShape.peekRotate())) currentShape.rotate();
+      }
+
+      // x logic
+      if (
+        engine &&
+        typeof engine.iskeypressed === "function" &&
+        engine.iskeypressed("a")
+      ) {
+        if (!hasCollided(currentShape.peekXMovement(-1)))
+          currentShape.mainPosition.x -= 1;
       }
       if (
         engine &&
         typeof engine.iskeypressed === "function" &&
-        engine.iskeypressed("a") &&
-        currentShape.mainPosition.x > 0
+        engine.iskeypressed("d")
       ) {
-        currentShape.mainPosition.x -= 1;
-      }
-      if (
-        engine &&
-        typeof engine.iskeypressed === "function" &&
-        engine.iskeypressed("d") &&
-        currentShape.mainPosition.x < 9
-      ) {
-        currentShape.mainPosition.x += 1;
+        if (!hasCollided(currentShape.peekXMovement(1)))
+          currentShape.mainPosition.x += 1;
       }
     }
 
     function draw() {
-      let cell_size = engine.W / cols;
+      const currentPositions = currentShape.generateCurrentPositions();
       engine.cls(bg);
-      for (let x = 0; x < cols; x++) {
-        for (let y = 0; y < rows; y++) {
-          const x_pos = 0 + x * cell_size;
-          const y_pos = 0 + y * cell_size;
-          engine.rect(x_pos, y_pos, cell_size, cell_size, 3);
-          engine.rectfill(x_pos, y_pos, cell_size, cell_size, grid[y][x]);
+      for (let x = 0; x < COLS; x++) {
+        for (let y = 0; y < ROWS; y++) {
+          const x_pos = 0 + x * CELL_SIZE;
+          const y_pos = 0 + y * CELL_SIZE;
+          engine.rect(x_pos, y_pos, CELL_SIZE, CELL_SIZE, 3);
+          engine.rectfill(x_pos, y_pos, CELL_SIZE, CELL_SIZE, grid[y][x]);
         }
-        const currentPositions = currentShape.generateCurrentPositions();
         for (let i = 0; i < 4; i++) {
           engine.rectfill(
-            currentPositions[i].x * cell_size,
-            currentPositions[i].y * cell_size,
-            cell_size,
-            cell_size,
-            5
+            currentPositions[i].x * CELL_SIZE,
+            currentPositions[i].y * CELL_SIZE,
+            CELL_SIZE,
+            CELL_SIZE,
+            currentShape.color
           );
         }
       }
@@ -87,7 +151,6 @@ export default function Game() {
       //engine.text(10, 10, "Tap anywhere");
     }
 
-    // cleanup on unmount
     return () => {
       engine.quit();
     };
@@ -97,7 +160,6 @@ export default function Game() {
     <canvas
       ref={canvasRef}
       style={{ display: "block", margin: 0, width: "20vw", height: "40vw" }}
-      // you can also control CSS size independently of the internal width/height
     />
   );
 }

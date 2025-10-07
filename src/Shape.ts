@@ -1,11 +1,5 @@
-export class Position {
-  public x: number = 0;
-  public y: number = 0;
-  constructor(x: number, y: number) {
-    this.x = x;
-    this.y = y;
-  }
-}
+import { Position } from "./Shared";
+
 const GENERIC_SHAPE_OFFSETS: Position[][] = [
   // #
   // #
@@ -88,12 +82,13 @@ function rotateOffset(rotationIdx: number, x: number, y: number): Position {
 }
 
 export class ControlledShape {
-  public mainPosition: Position = new Position(5, 5);
+  public mainPosition: Position = new Position(4, -2);
   public color = 5;
   private shapeChosenIdx: number = 0;
   private rotationIdx: number = 0;
   constructor() {
-    this.color = Math.floor(Math.random() * 10) + 5;
+    this.color = Math.floor(Math.random() * 5) + 1;
+    this.rotationIdx = Math.floor(Math.random() * 4);
     this.shapeChosenIdx = Math.floor(
       Math.random() * GENERIC_SHAPE_OFFSETS.length
     );
@@ -124,7 +119,7 @@ export class ControlledShape {
       poses.push(
         new Position(
           rotatedOffset.x + this.mainPosition.x + xOffset,
-          rotatedOffset.y + this.mainPosition.y
+          Math.ceil(rotatedOffset.y + this.mainPosition.y)
         )
       );
     }

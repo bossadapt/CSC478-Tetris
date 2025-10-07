@@ -1,6 +1,8 @@
 import { useEffect, useRef } from "react";
 import litecanvas from "litecanvas";
-import { ControlledShape as ControledShape, Position } from "./localTypes";
+import { Position } from "./Shared";
+import { ControlledShape as ControledShape } from "./Shape";
+import { Grid } from "./Grid";
 // instead of creating one globally.'
 export default function Game() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -14,67 +16,20 @@ export default function Game() {
       height: 400,
     });
     // local game state
-    let bg: number, grid: number[][], currentShape: ControledShape;
+    let grid: Grid, currentShape: ControledShape;
     const COLS = 10,
       ROWS = 20;
 
     const CELL_SIZE = engine.W / COLS;
     // this function runs once at the beginning
     function init() {
-      bg = 0; // the color #0 (black)
       currentShape = new ControledShape();
-      grid = Array.from({ length: ROWS }, () =>
-        Array.from({ length: COLS }, () => 3)
-      );
+      grid = new Grid(COLS, ROWS, 0);
     }
     function moveToNextShape(currentPositions: Position[], color: number) {
-      //draw shape to board
-      for (let i = 0; i < currentPositions.length; i++) {
-        const x = currentPositions[i].x;
-        const y = Math.ceil(currentPositions[i].y) - 1;
-        //check if it's even entered the board
-        if (y > 0) {
-          // there is something becides an empty space in that grid
-          grid[y][x] = color;
-        }
-      }
-      // clear out lines that are done
-      // TODO: go line by line and drop the blocks down if a line is cleared
-      // for (let y = 0; y < ROWS; y++) {
-      //   for(let x = )
-      // }
-      // spawn in the next one
+      grid.drawPositions2Grid(currentPositions, color);
+      let rows_cleared = grid.clearFinishedRows();
       currentShape = new ControledShape();
-    }
-
-    function hasCollided(currentPositions: Position[]): boolean {
-      const currentPositionsY = currentPositions.map((pos) => {
-        return pos.y;
-      });
-      const currentPositionsX = currentPositions.map((pos) => {
-        return pos.x;
-      });
-      const currentMinX = Math.min(...currentPositionsX);
-      const currentMaxY = Math.ceil(Math.max(...currentPositionsY));
-      const currentMaxX = Math.max(...currentPositionsX);
-      // boundaries check
-      if (currentMaxX > COLS - 1 || currentMinX < 0 || currentMaxY > ROWS - 1) {
-        return true;
-      }
-
-      // other shapes check
-      for (let i = 0; i < currentPositions.length; i++) {
-        const x = currentPositions[i].x;
-        const y = Math.ceil(currentPositions[i].y);
-        //check if it's even entered the board
-        if (y > 0) {
-          // there is something becides an empty space in that grid
-          if (grid[y][x] !== 3) {
-            return true;
-          }
-        }
-      }
-      return false;
     }
     // this function detect clicks/touches
     // function tapped(x: number, y: number) {
@@ -83,61 +38,72 @@ export default function Game() {
     //   posx = x;
     //   posy = y;
     // }
-    // put the game logic in this function
     function update(dt: number) {
-      // y logic
+      // auto move down movement
       currentShape.mainPosition.y += dt * 1;
-      if (
-        engine &&
-        typeof engine.iskeydown === "function" &&
-        engine.iskeydown("s")
-      ) {
-        currentShape.mainPosition.y += dt * 5;
-      }
-      const currentPositions = currentShape.generateCurrentPositions();
-      if (hasCollided(currentPositions)) {
-        moveToNextShape(currentPositions, currentShape.color);
-      }
+      if (engine.iskeydown) {
+        if (engine && engine.iskeydown("s")) {
+          currentShape.mainPosition.y += dt * 10;
+        }
+        const currentPositions = currentShape.generateCurrentPositions();
+        if (grid.hasCollided(currentPositions)) {
+          moveToNextShape(currentPositions, currentShape.color);
+        }
 
-      // rotate logic
-      if (
-        engine &&
-        typeof engine.iskeypressed === "function" &&
-        engine.iskeypressed("w")
-      ) {
-        if (!hasCollided(currentShape.peekRotate())) currentShape.rotate();
-      }
+        // rotate logic
+        if (
+          engine &&
+          typeof engine.iskeypressed === "function" &&
+          engine.iskeypressed("w")
+        ) {
+          if (!grid.hasCollided(currentShape.peekRotate()))
+            currentShape.rotate();
+        }
 
-      // x logic
-      if (
-        engine &&
-        typeof engine.iskeypressed === "function" &&
-        engine.iskeypressed("a")
-      ) {
-        if (!hasCollided(currentShape.peekXMovement(-1)))
-          currentShape.mainPosition.x -= 1;
-      }
-      if (
-        engine &&
-        typeof engine.iskeypressed === "function" &&
-        engine.iskeypressed("d")
-      ) {
-        if (!hasCollided(currentShape.peekXMovement(1)))
-          currentShape.mainPosition.x += 1;
+        // x logic
+        if (
+          engine &&
+          typeof engine.iskeypressed === "function" &&
+          engine.iskeypressed("a")
+        ) {
+          if (!grid.hasCollided(currentShape.peekXMovement(-1)))
+            currentShape.mainPosition.x -= 1;
+        }
+        if (
+          engine &&
+          typeof engine.iskeypressed === "function" &&
+          engine.iskeypressed("d")
+        ) {
+          if (!grid.hasCollided(currentShape.peekXMovement(1)))
+            currentShape.mainPosition.x += 1;
+        }
       }
     }
 
     function draw() {
       const currentPositions = currentShape.generateCurrentPositions();
-      engine.cls(bg);
-      for (let x = 0; x < COLS; x++) {
-        for (let y = 0; y < ROWS; y++) {
+      engine.cls(grid.bg_color);
+      for (let x = 0; x < grid.width; x++) {
+        for (let y = 0; y < grid.height; y++) {
           const x_pos = 0 + x * CELL_SIZE;
           const y_pos = 0 + y * CELL_SIZE;
           engine.rect(x_pos, y_pos, CELL_SIZE, CELL_SIZE, 3);
-          engine.rectfill(x_pos, y_pos, CELL_SIZE, CELL_SIZE, grid[y][x]);
+          engine.rectfill(
+            x_pos,
+            y_pos,
+            CELL_SIZE,
+            CELL_SIZE,
+            grid.getPosition(x, y)
+          );
         }
         for (let i = 0; i < 4; i++) {
+          engine.rect(
+            currentPositions[i].x * CELL_SIZE,
+            currentPositions[i].y * CELL_SIZE,
+            CELL_SIZE,
+            CELL_SIZE,
+            0
+          );
           engine.rectfill(
             currentPositions[i].x * CELL_SIZE,
             currentPositions[i].y * CELL_SIZE,

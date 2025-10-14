@@ -3,7 +3,6 @@ import litecanvas from "litecanvas";
 import { Position } from "./Shared";
 import { ControlledShape as ControledShape } from "./Shape";
 import { Grid } from "./Grid";
-// instead of creating one globally.'
 export default function Game() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
@@ -17,18 +16,33 @@ export default function Game() {
     });
     // local game state
     let grid: Grid, currentShape: ControledShape;
+    let totalLinesCleared: number, level: number, score: number;
     const COLS = 10,
       ROWS = 20;
 
     const CELL_SIZE = engine.W / COLS;
+    const SCORING_BY_LINE = [100, 300, 500, 800];
     // this function runs once at the beginning
     function init() {
       currentShape = new ControledShape();
       grid = new Grid(COLS, ROWS, 0);
+      totalLinesCleared = 0;
+      level = 1;
+      score = 0;
     }
+
     function moveToNextShape(currentPositions: Position[], color: number) {
       grid.drawPositions2Grid(currentPositions, color);
-      let rows_cleared = grid.clearFinishedRows();
+      const linesCleared = grid.clearFinishedRows();
+
+      if (linesCleared > 0) {
+        score += SCORING_BY_LINE[linesCleared - 1] * level;
+        totalLinesCleared += linesCleared;
+        level = Math.floor(totalLinesCleared / 10) + 1;
+        console.log("LINES_CLEARED:", totalLinesCleared);
+        console.log("LEVEL:", level);
+        console.log("SCORE:", score);
+      }
       currentShape = new ControledShape();
     }
     // this function detect clicks/touches
@@ -38,16 +52,30 @@ export default function Game() {
     //   posx = x;
     //   posy = y;
     // }
+    function gameOver() {
+      grid.reset();
+      score = 0;
+      level = 1;
+      totalLinesCleared = 0;
+    }
     function update(dt: number) {
       // auto move down movement
-      currentShape.mainPosition.y += dt * 1;
+      currentShape.mainPosition.y += dt * level;
       if (engine.iskeydown) {
         if (engine && engine.iskeydown("s")) {
           currentShape.mainPosition.y += dt * 10;
         }
         const currentPositions = currentShape.generateCurrentPositions();
+        const currentPositionsY = currentPositions.map((pos) => {
+          return pos.y;
+        });
+        const currentMinY = Math.min(...currentPositionsY);
         if (grid.hasCollided(currentPositions)) {
-          moveToNextShape(currentPositions, currentShape.color);
+          if (currentMinY < 0) {
+            gameOver();
+          } else {
+            moveToNextShape(currentPositions, currentShape.color);
+          }
         }
 
         // rotate logic

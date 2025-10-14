@@ -62,6 +62,11 @@ export class Grid {
     }
     return rows_cleared;
   }
+  reset() {
+    this.internalArray = Array.from({ length: this.height }, () =>
+      Array.from({ length: this.width }, () => this.bg_color)
+    );
+  }
   hasCollided(currentPositions: Position[]): boolean {
     const currentPositionsY = currentPositions.map((pos) => {
       return pos.y;

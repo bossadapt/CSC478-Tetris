@@ -1,4 +1,4 @@
-import { Position } from "./Shared";
+import { GameColor, Position } from "./Shared";
 
 const GENERIC_SHAPE_OFFSETS: Position[][] = [
   // #
@@ -80,14 +80,23 @@ function rotateOffset(rotationIdx: number, x: number, y: number): Position {
       return new Position(x, y);
   }
 }
-
-export class ControlledShape {
+// yellow seems to be any color thats not in the range [0-4]
+const POSSIBLE_SHAPE_COLORS = [
+  GameColor.DARK_GRAY,
+  GameColor.LIGHT_GRAY,
+  GameColor.RED,
+  GameColor.YELLOW,
+];
+export class ActiveShape {
   public mainPosition: Position = new Position(4, -2);
-  public color = 5;
+  public color = -1;
   private shapeChosenIdx: number = 0;
   private rotationIdx: number = 0;
   constructor() {
-    this.color = Math.floor(Math.random() * 5) + 1;
+    this.color =
+      POSSIBLE_SHAPE_COLORS[
+        Math.floor(Math.random() * POSSIBLE_SHAPE_COLORS.length)
+      ].valueOf();
     this.rotationIdx = Math.floor(Math.random() * 4);
     this.shapeChosenIdx = Math.floor(
       Math.random() * GENERIC_SHAPE_OFFSETS.length

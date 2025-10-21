@@ -1,6 +1,6 @@
 import React from "react";
 import "./App.css";
-import Game from "./Game";
+import GameEngine from "./GameEngine";
 
 function App() {
   return (
@@ -17,7 +17,7 @@ function App() {
         style={{ width: "40vw", height: "100vh", background: "#FF1100" }}
       ></div>
       <div>
-        <Game />
+        <GameEngine />
       </div>
       <div
         style={{ width: "40vw", height: "100vh", background: "#00FF0F" }}

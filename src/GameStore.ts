@@ -2,22 +2,29 @@ import { create } from "zustand";
 import { Grid } from "./Grid";
 import { ActiveShape } from "./Shape";
 import { GameColor, Position } from "./Shared";
-const SCORING_BY_LINE = [100, 300, 500, 800];
+
+const SCORING_BY_LINE = [100, 300, 500, 800] as const;
+
+const COLS = 10 as const;
+const ROWS = 20 as const;
+
 export enum GamePhase {
   PAUSED,
   OVER,
   ACTIVE,
   START,
 }
+
 type GameState = {
-  COLS: 10;
-  ROWS: 20;
+  COLS: typeof COLS;
+  ROWS: typeof ROWS;
   gamePhase: GamePhase;
   level: number;
   score: number;
   linesCleared: number;
   grid: Grid;
   activeShape: ActiveShape;
+  boardVersion: number;
 };
 
 type GameStore = GameState & {
@@ -26,38 +33,64 @@ type GameStore = GameState & {
   pauseGame: () => void;
   moveToNextShape: (currentPositions: Position[], color: number) => void;
 };
+
 export const useGameStore = create<GameStore>((set, get) => ({
-  COLS: 10,
-  ROWS: 20,
+  COLS,
+  ROWS,
+  gamePhase: GamePhase.ACTIVE, //TODO: move to start
   level: 1,
   score: 0,
   linesCleared: 0,
-  gamePhase: GamePhase.START,
-  grid: new Grid(get().COLS, get().ROWS, GameColor.BLACK),
+  grid: new Grid(COLS, ROWS, GameColor.BLACK),
   activeShape: new ActiveShape(),
+  boardVersion: 0,
+
   startGame: () => {
-    const newGrid = new Grid(get().COLS, get().ROWS, GameColor.BLACK);
     set({
-      grid: newGrid,
+      gamePhase: GamePhase.ACTIVE,
+      grid: new Grid(COLS, ROWS, GameColor.BLACK),
+      activeShape: new ActiveShape(),
       score: 0,
       level: 1,
       linesCleared: 0,
+      boardVersion: 0,
     });
   },
-  endGame: () => {},
-  pauseGame: () => {},
-  moveToNextShape(currentPositions: Position[], color: number) {
-    get().grid.drawPositions2Grid(currentPositions, color);
-    const linesCleared = get().grid.clearFinishedRows();
 
-    if (linesCleared > 0) {
-      get().score += SCORING_BY_LINE[linesCleared - 1] * get().level;
-      get().linesCleared += linesCleared;
-      get().level = Math.floor(get().linesCleared / 10) + 1;
-      console.log("LINES_CLEARED:", get().linesCleared);
-      console.log("level:", get().level);
-      console.log("SCORE:", get().score);
-    }
-    get().activeShape = new ActiveShape();
+  endGame: () => set({ gamePhase: GamePhase.OVER }),
+
+  pauseGame: () =>
+    set((s) => ({
+      gamePhase:
+        s.gamePhase === GamePhase.PAUSED ? GamePhase.ACTIVE : GamePhase.PAUSED,
+    })),
+
+  moveToNextShape: (currentPositions, color) => {
+    const grid = get().grid;
+
+    // mutate the current grid…
+    grid.drawPositions2Grid(currentPositions, color);
+    const cleared = grid.clearFinishedRows();
+
+    // …then compute and set derived state via set()
+    set((s) => {
+      let score = s.score;
+      let linesCleared = s.linesCleared;
+      let level = s.level;
+
+      if (cleared > 0) {
+        score += (SCORING_BY_LINE[cleared - 1] ?? 0) * level;
+        linesCleared += cleared;
+        level = Math.floor(linesCleared / 10) + 1;
+      }
+
+      return {
+        score,
+        linesCleared,
+        level,
+        activeShape: new ActiveShape(),
+        boardVersion: s.boardVersion + 1, //to force a rerender
+      };
+    });
   },
 }));

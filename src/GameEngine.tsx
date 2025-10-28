@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import litecanvas from "litecanvas";
-import { Position } from "./Shared";
+import { GameColor, Position } from "./Shared";
 import { GamePhase, useGameStore } from "./GameStore";
 export default function GameEngine() {
   const get = useGameStore.getState;
@@ -16,13 +16,18 @@ export default function GameEngine() {
 
     const CELL_SIZE = engine.W / get().COLS;
     // this function runs once at the beginning
-    function init() {
-      get().startGame();
-    }
+    function init() {}
     function updateActive(dt: number) {
+      if (engine.iskeypressed && engine.iskeypressed("escape")) {
+        get().pauseGame();
+        return;
+      }
       get().activeShape.mainPosition.y += dt * get().level;
       if (engine.iskeydown) {
-        if (engine && engine.iskeydown("s")) {
+        if (
+          engine &&
+          (engine.iskeydown("s") || engine.iskeydown("arrowdown"))
+        ) {
           get().activeShape.mainPosition.y += dt * 10;
         }
         const currentPositions = get().activeShape.generateCurrentPositions();
@@ -32,17 +37,16 @@ export default function GameEngine() {
         const currentMinY = Math.min(...currentPositionsY);
         if (get().grid.hasCollided(currentPositions)) {
           if (currentMinY < 0) {
-            get().startGame();
+            get().endGame();
           } else {
             get().moveToNextShape(currentPositions, get().activeShape.color);
           }
         }
 
-        // rotate logic
         if (
           engine &&
           typeof engine.iskeypressed === "function" &&
-          engine.iskeypressed("w")
+          (engine.iskeypressed("w") || engine.iskeypressed("arrowup"))
         ) {
           if (!get().grid.hasCollided(get().activeShape.peekRotate()))
             get().activeShape.rotate();
@@ -52,7 +56,7 @@ export default function GameEngine() {
         if (
           engine &&
           typeof engine.iskeypressed === "function" &&
-          engine.iskeypressed("a")
+          (engine.iskeypressed("a") || engine.iskeypressed("arrowleft"))
         ) {
           if (!get().grid.hasCollided(get().activeShape.peekXMovement(-1)))
             get().activeShape.mainPosition.x -= 1;
@@ -60,11 +64,46 @@ export default function GameEngine() {
         if (
           engine &&
           typeof engine.iskeypressed === "function" &&
-          engine.iskeypressed("d")
+          (engine.iskeypressed("d") || engine.iskeypressed("arrowright"))
         ) {
           if (!get().grid.hasCollided(get().activeShape.peekXMovement(1)))
             get().activeShape.mainPosition.x += 1;
         }
+      }
+    }
+    function updatePause(dt: number) {
+      if (engine.iskeypressed && engine.iskeypressed("escape")) {
+        get().pauseGame();
+        return;
+      }
+    }
+    function updateOver(dt: number) {
+      if (engine.iskeypressed && engine.iskeypressed("enter")) {
+        get().startGame();
+        return;
+      }
+    }
+    function updateStart(dt: number) {
+      if (engine.lastkey) console.log(engine.lastkey());
+      if (engine.iskeypressed && engine.iskeypressed("enter")) {
+        get().startGame();
+        return;
+      }
+    }
+    function update(dt: number) {
+      switch (get().gamePhase) {
+        case GamePhase.ACTIVE:
+          updateActive(dt);
+          break;
+        case GamePhase.PAUSED:
+          updatePause(dt);
+          break;
+        case GamePhase.OVER:
+          updateOver(dt);
+          break;
+        case GamePhase.START:
+          updateStart(dt);
+          break;
       }
     }
     function drawActive() {
@@ -101,14 +140,44 @@ export default function GameEngine() {
         }
       }
     }
-    function update(dt: number) {
-      // auto move down movement
-      if (get().gamePhase == GamePhase.ACTIVE) updateActive(dt);
+    function drawPaused() {
+      engine.cls(get().grid.bg_color);
+      engine.text(62, 150, "PAUSED", GameColor.WHITE, "bold");
+      engine.text(0, 180, "press esc to continue", GameColor.WHITE);
+    }
+    function drawOver() {
+      engine.cls(get().grid.bg_color);
+
+      engine.text(40, 100, "GAME OVER", GameColor.WHITE, "bold");
+      const level_text = "Level #: " + get().level;
+      const lines_cleared_text = "Lines Cleared: " + get().linesCleared;
+      const score_text = "Score: " + get().score;
+
+      engine.text(0, 130, level_text, GameColor.WHITE);
+      engine.text(0, 160, lines_cleared_text, GameColor.WHITE);
+      engine.text(0, 190, score_text, GameColor.WHITE);
+      engine.text(0, 220, "press enter to restart", GameColor.WHITE);
+    }
+    function drawStart() {
+      engine.text(62, 150, "TETRIS", GameColor.WHITE, "bold");
+      engine.text(5, 180, "press enter to begin", GameColor.WHITE);
     }
 
     function draw() {
-      if (get().gamePhase == GamePhase.ACTIVE) drawActive();
-      //engine.text(10, 10, "Tap anywhere");
+      switch (get().gamePhase) {
+        case GamePhase.ACTIVE:
+          drawActive();
+          break;
+        case GamePhase.PAUSED:
+          drawPaused();
+          break;
+        case GamePhase.OVER:
+          drawOver();
+          break;
+        case GamePhase.START:
+          drawStart();
+          break;
+      }
     }
 
     return () => {

@@ -37,7 +37,7 @@ type GameStore = GameState & {
 export const useGameStore = create<GameStore>((set, get) => ({
   COLS,
   ROWS,
-  gamePhase: GamePhase.ACTIVE, //TODO: move to start
+  gamePhase: GamePhase.START,
   level: 1,
   score: 0,
   linesCleared: 0,

@@ -24,7 +24,7 @@ export class Grid {
       const x = currentPositions[i].x;
       const y = currentPositions[i].y - 1;
       //check if it's even entered the board
-      if (y > 0) {
+      if (y >= 0) {
         // there is something becides an empty space in that grid
         this.internalArray[y][x] = color;
       }
@@ -41,13 +41,13 @@ export class Grid {
       let items_in_row = 0;
       for (let x = 0; x < this.width; x++) {
         // check if all are cleared
-        if (this.getPosition(x, y) == this.bg_color) {
+        if (this.getPosition(x, y) === this.bg_color) {
           break;
         } else {
           items_in_row += 1;
         }
       }
-      if (items_in_row == this.width) {
+      if (items_in_row === this.width) {
         rows_cleared += 1;
         this.clearRow(y);
       } else {
@@ -86,7 +86,7 @@ export class Grid {
       const x = currentPositions[i].x;
       const y = currentPositions[i].y;
       //check if it's even entered the board
-      if (y > 0) {
+      if (y >= 0) {
         // there is something becides an empty space in that grid
         if (this.getPosition(x, y) !== this.bg_color) {
           return true;

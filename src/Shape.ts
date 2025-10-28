@@ -128,7 +128,7 @@ export class ActiveShape {
       poses.push(
         new Position(
           rotatedOffset.x + this.mainPosition.x + xOffset,
-          Math.ceil(rotatedOffset.y + this.mainPosition.y)
+          Math.floor(rotatedOffset.y + this.mainPosition.y)
         )
       );
     }

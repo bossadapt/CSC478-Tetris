@@ -28,7 +28,7 @@ type GameState = {
 };
 
 type GameStore = GameState & {
-  startGame: () => void;
+  startGame: (level?: number) => void;
   endGame: () => void;
   pauseGame: () => void;
   moveToNextShape: (currentPositions: Position[], color: number) => void;
@@ -45,13 +45,16 @@ export const useGameStore = create<GameStore>((set, get) => ({
   activeShape: new ActiveShape(),
   boardVersion: 0,
 
-  startGame: () => {
+  startGame: (level?: number) => {
+    if (!level) {
+      level = 1;
+    }
     set({
       gamePhase: GamePhase.ACTIVE,
       grid: new Grid(COLS, ROWS, GameColor.BLACK),
       activeShape: new ActiveShape(),
       score: 0,
-      level: 1,
+      level: level,
       linesCleared: 0,
       boardVersion: 0,
     });

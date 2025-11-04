@@ -12,7 +12,89 @@
     animation: App-logo-spin infinite 20s linear;
   }
 }
+.insert-coin {
+  font-family: "Press Start 2P", monospace;
+  color: white;
+  letter-spacing: 2px;
+}
+.main-button{
+  flex-grow: 1;
+  font-size: 20px;
+  background-color: black;
+  color: white;
+  border-color: white;
+}
+.instructions-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  text-align: left;
+}
 
+.instructions-panel .panel-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.instructions-panel button {
+  background: #000;
+  color: #fff;
+  border: 1px solid #fff;
+  padding: 0.75rem 1rem;
+  font-family: inherit;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.instructions-panel button:hover,
+.instructions-panel button:focus {
+  outline: none;
+  background: #111;
+}
+
+.state-board {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.state-board h2 {
+  margin: 0;
+}
+.level-selection {
+  width: 100%;
+  height: 100%;
+  display: flex;
+}
+
+.level-selection__grid {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  gap: 0.75rem;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(5, 1fr);
+}
+
+.level-selection__button {
+  background: #000;
+  color: #fff;
+  border: 1px solid #fff;
+  cursor: pointer;
+  padding: 0.75rem;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.level-selection__button:hover,
+.level-selection__button:focus {
+  background: #111;
+  outline: none;
+}
 .App-header {
   background-color: #282c34;
   min-height: 100vh;

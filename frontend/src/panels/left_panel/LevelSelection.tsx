@@ -15,7 +15,7 @@ export default function LevelSelection() {
           gridTemplateColumns: `repeat(${LEVELS_PER_ROW}, 1fr)`,
           gridTemplateRows: `repeat(${Math.ceil(
             LEVEL_COUNT / LEVELS_PER_ROW
-          )}, 1fr)`,
+          )}, minmax(3rem, auto))`,
         }}
       >
         {levels.map((levelNumber) => (

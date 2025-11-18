@@ -17,9 +17,21 @@
   color: white;
   letter-spacing: 2px;
 }
+
+:root {
+  font-size: clamp(10px, 0.95vw, 16px);
+}
+
+.insert-coin,
+.leader_board_table,
+.state-board,
+.instructions-panel {
+  font-size: clamp(0.6rem, 0.9vw, 1rem);
+}
+
 .main-button{
   flex-grow: 1;
-  font-size: 20px;
+  font-size: clamp(0.65rem, 1vw, 1.25rem);
   background-color: black;
   color: white;
   border-color: white;
@@ -121,26 +133,17 @@
   background: #111;
   outline: none;
 }
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
-}
 
-.App-link {
-  color: #61dafb;
+.leader_board_table {
+  font-family: "Press Start 2P", monospace;
+  border-collapse: collapse white;
+  border-style: ridge; 
 }
-
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.leader_board_table thead th,
+.leader_board_table thead td {
+  border: 1px ridge white;
+}
+.leader_board_table tbody td{
+  border: 1px white ridge;
+  text-align: center;
 }

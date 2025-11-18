@@ -148,15 +148,7 @@ export default function GameEngine() {
     function drawOver() {
       engine.cls(get().grid.bg_color);
 
-      engine.text(40, 100, "GAME OVER", GameColor.WHITE, "bold");
-      const level_text = "Level #: " + get().level;
-      const lines_cleared_text = "Lines Cleared: " + get().linesCleared;
-      const score_text = "Score: " + get().score;
-
-      engine.text(0, 130, level_text, GameColor.WHITE);
-      engine.text(0, 160, lines_cleared_text, GameColor.WHITE);
-      engine.text(0, 190, score_text, GameColor.WHITE);
-      engine.text(0, 220, "press enter to restart", GameColor.WHITE);
+      engine.text(40, 160, "GAME OVER", GameColor.WHITE, "bold");
     }
     function drawStart() {
       engine.text(62, 150, "TETRIS", GameColor.WHITE, "bold");
@@ -188,7 +180,7 @@ export default function GameEngine() {
   return (
     <canvas
       ref={canvasRef}
-      style={{ display: "block", margin: 0, width: "20vw", height: "40vw" }}
+      style={{ display: "block", margin: 0, width: "20vw", height: "100vh" }}
     />
   );
 }

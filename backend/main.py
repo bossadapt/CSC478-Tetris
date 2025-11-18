@@ -2,7 +2,8 @@ import sqlite3
 from typing import Annotated
 from fastapi import FastAPI, HTTPException, Query, status
 from fastapi.concurrency import asynccontextmanager
-from pydantic import BaseModel, Field
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel, Field, constr
 from dotenv import load_dotenv
 import hashlib
 import hmac
@@ -11,6 +12,17 @@ import os
 app = FastAPI()
 SECRET = ""
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 class GetLeaderboardRequest(BaseModel):
     limit: int = Field(100, gt=0, le=100)
@@ -18,10 +30,10 @@ class GetLeaderboardRequest(BaseModel):
 
 
 class PostLeaderboardRequest(BaseModel):
-    name: str
+    name: constr(min_length=1, max_length=5, strip_whitespace=True)
     level: int
     lines: int
-    score: int
+    score: int = Field(gt=0)
     sec: str
 
 
@@ -56,14 +68,25 @@ def basicTamperCheck(entry: PostLeaderboardRequest):
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     global SECRET
-    load_dotenv("./../../.env")
-    SECRET = os.getenv("SECRET_SALT")
+    load_dotenv("./../frontend/.env")
+    SECRET = os.getenv("REACT_APP_LEADERBOARD_SECRET")
     if not SECRET:
-        raise RuntimeError("SECRET_SALT missing")
+        raise RuntimeError("REACT_APP_LEADERBOARD_SECRET missing")
     con, curs = getConCur()
     try:
         curs.execute(
-            "CREATE TABLE IF NOT EXISTS leaderboard ( name TEXT, level INTEGER, lines INTEGER, score INTEGER )"
+            "CREATE TABLE IF NOT EXISTS leaderboard ( name TEXT, level INTEGER, lines INTEGER, score INTEGER, sec TEXT UNIQUE )"
+        )
+        existing_columns = {
+            row[1] for row in curs.execute("PRAGMA table_info(leaderboard)")
+        }
+        if "sec" not in existing_columns:
+            try:
+                curs.execute("ALTER TABLE leaderboard ADD COLUMN sec TEXT")
+            except sqlite3.OperationalError:
+                pass
+        curs.execute(
+            "CREATE UNIQUE INDEX IF NOT EXISTS idx_leaderboard_sec ON leaderboard (sec)"
         )
         curs.execute("CREATE INDEX IF NOT EXISTS idx_score ON leaderboard (score)")
         con.commit()
@@ -89,7 +112,16 @@ async def getLeaderboard(request: Annotated[GetLeaderboardRequest, Query()]):
     finally:
         curs.close()
         con.close()
-    return results
+    return [
+        {
+            "rank": request.offset + idx + 1,
+            "name": row["name"],
+            "level": row["level"],
+            "lines": row["lines"],
+            "score": row["score"],
+        }
+        for idx, row in enumerate(results)
+    ]
 
 
 @app.post("/leaderboard")
@@ -100,10 +132,21 @@ async def addToLeaderboard(
     con, curs = getConCur()
     try:
         curs.execute(
-            "INSERT INTO leaderboard (name, level, lines, score) VALUES (?,?,?,?)",
-            (request.name, request.level, request.lines, request.score),
+            "INSERT INTO leaderboard (name, level, lines, score, sec) VALUES (?,?,?,?,?)",
+            (
+                request.name,
+                request.level,
+                request.lines,
+                request.score,
+                request.sec,
+            ),
         )
         con.commit()
+    except sqlite3.IntegrityError as exc:
+        raise HTTPException(
+            status.HTTP_409_CONFLICT,
+            "Score already submitted",
+        ) from exc
     finally:
         curs.close()
         con.close()

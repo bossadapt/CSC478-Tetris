@@ -56,7 +56,7 @@ export default function InteractiveMenu() {
     <div className="interactive-menu__center-block">
       <h1>Please Enter a name into the leaderboard on the the right</h1>
       <h1>OR</h1>
-      <h1>Restart</h1>
+      <h1>Press Enter to Restart</h1>
     </div>
   );
 
@@ -83,7 +83,7 @@ export default function InteractiveMenu() {
   return (
     <div className="insert-coin interactive-menu">
       {buttonsRow}
-      {controls}
+      {bodyContent}
       <LevelSelection></LevelSelection>
     </div>
   );

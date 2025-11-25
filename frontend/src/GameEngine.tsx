@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import litecanvas from "litecanvas";
-import { GameColor, Position } from "./Shared";
+import { GameColor } from "./Shared";
 import { GamePhase, useGameStore } from "./GameStore";
 export default function GameEngine() {
   const get = useGameStore.getState;

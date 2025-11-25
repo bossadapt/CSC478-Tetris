@@ -12,9 +12,9 @@ export default function RightPanel() {
     setRefreshToken((token) => token + 1);
   };
 
-  if (gamePhase == GamePhase.START) {
+  if (gamePhase === GamePhase.START) {
     return <div></div>;
-  } else if (gamePhase == GamePhase.ACTIVE || gamePhase == GamePhase.PAUSED) {
+  } else if (gamePhase === GamePhase.ACTIVE || gamePhase === GamePhase.PAUSED) {
     return <StateBoard></StateBoard>;
   } else {
     return (

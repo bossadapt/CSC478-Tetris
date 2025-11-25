@@ -29,6 +29,7 @@ export default function RightPanel() {
       >
         <div style={{ flexShrink: 0 }}>
           <Leaderboard refreshToken={refreshToken}></Leaderboard>
+          <hr />
         </div>
         <div style={{ flex: 1, minHeight: 0 }}>
           <AddScore onScoreSubmitted={handleScoreSubmitted}></AddScore>

@@ -99,10 +99,12 @@ export default function AddScore({ onScoreSubmitted }: AddScoreProps) {
 
   return (
     <div className="insert-coin" style={{ overflowY: "auto", height: "100%" }}>
-      <h2>YOUR SCORE</h2>
+      <h1>YOUR SCORE</h1>
       <div style={{ marginTop: "0.5rem" }}>
         <div>Current Level: {level}</div>
+        <br />
         <div>Lines Cleared: {linesCleared}</div>
+        <br />
         <div>Score: {score}</div>
       </div>
       {hasSubmitted ? (

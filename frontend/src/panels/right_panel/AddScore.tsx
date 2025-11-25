@@ -1,7 +1,8 @@
 import { FormEvent, useState } from "react";
 import { useGameStore } from "../../GameStore";
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE ?? "http://127.0.0.1:8000";
+const API_BASE_URL =
+  process.env.REACT_APP_API_BASE ?? "http://bossadapt.org/tetris/api";
 const API_SECRET = process.env.REACT_APP_LEADERBOARD_SECRET ?? "";
 
 async function signPayload(message: string) {

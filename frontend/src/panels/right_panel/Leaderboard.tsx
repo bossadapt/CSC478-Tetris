@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 
 const PAGE_SIZE = 10;
-const API_BASE_URL = process.env.REACT_APP_API_BASE ?? "http://127.0.0.1:8000";
+const API_BASE_URL =
+  process.env.REACT_APP_API_BASE ?? "http://bossadapt.org/tetris/api";
 
 type LeaderboardEntry = {
   rank: number;

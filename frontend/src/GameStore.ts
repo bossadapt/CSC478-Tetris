@@ -83,8 +83,14 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
       if (cleared > 0) {
         score += (SCORING_BY_LINE[cleared - 1] ?? 0) * level;
+
+        if (
+          Math.floor(linesCleared / 10) <
+          Math.floor((linesCleared + cleared) / 10)
+        ) {
+          level += 1;
+        }
         linesCleared += cleared;
-        level = Math.floor(linesCleared / 10) + 1;
       }
 
       return {

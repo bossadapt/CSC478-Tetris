@@ -1,3 +1,0 @@
-deploy:
-    npm run build
-    pm2 serve build/ 5900 --name "Tetris Frontend" --spa

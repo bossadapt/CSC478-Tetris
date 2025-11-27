@@ -1,0 +1,17 @@
+[Unit]
+Description=Tetris Backend Leaderboard
+After=network.target
+
+[Service]
+WorkingDirectory=/var/www/bossadapt.org/CSC478-Tetris/backend
+ExecStart=/var/www/bossadapt.org/CSC478-Tetris/backend/.venv/bin/uvicorn main:app \
+  --host 127.0.0.1 \
+  --port 7898
+
+Restart=always
+RestartSec=3
+User=www-data
+Group=www-data
+
+[Install]
+WantedBy=multi-user.target

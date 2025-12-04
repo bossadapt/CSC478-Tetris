@@ -24,6 +24,7 @@ export default function GameEngine() {
       }
       get().activeShape.mainPosition.y += dt * get().level;
       if (engine.iskeydown) {
+        // accelerate piece down if s or arrowdown key is pressed (requirements: 3.1.3 \ 3.4.2)
         if (
           engine &&
           (engine.iskeydown("s") || engine.iskeydown("arrowdown"))
@@ -35,6 +36,7 @@ export default function GameEngine() {
           return pos.y;
         });
         const currentMinY = Math.min(...currentPositionsY);
+        // detect piece position and trigger end game if needed (requirement: 3.1.6)
         if (get().grid.hasCollided(currentPositions)) {
           if (currentMinY < 0) {
             get().endGame();
@@ -42,7 +44,7 @@ export default function GameEngine() {
             get().moveToNextShape(currentPositions, get().activeShape.color);
           }
         }
-
+        // rotate piece if w or arrowup is pressed (requirements: 3.1.2 \ 3.4.3)
         if (
           engine &&
           typeof engine.iskeypressed === "function" &&
@@ -53,6 +55,7 @@ export default function GameEngine() {
         }
 
         // x logic
+        // move piece left if a or arrowleft key is pressed (requirements: 3.1.1 \ 3.4.0)  
         if (
           engine &&
           typeof engine.iskeypressed === "function" &&
@@ -61,6 +64,7 @@ export default function GameEngine() {
           if (!get().grid.hasCollided(get().activeShape.peekXMovement(-1)))
             get().activeShape.mainPosition.x -= 1;
         }
+        // move piece right if d or arrowright key is pressed (requirements: 3.1.1 \ 3.4.1)
         if (
           engine &&
           typeof engine.iskeypressed === "function" &&
@@ -71,6 +75,8 @@ export default function GameEngine() {
         }
       }
     }
+    
+    // pause game if esc key is pressed (requirements: 3.1.7 \ 3.4.4)
     function updatePause(dt: number) {
       if (engine.iskeypressed && engine.iskeypressed("escape")) {
         get().pauseGame();
@@ -140,16 +146,19 @@ export default function GameEngine() {
         }
       }
     }
+    //display "paused" screen when conditions are met (requirements: 3.3.2)
     function drawPaused() {
       engine.cls(get().grid.bg_color);
       engine.text(62, 150, "PAUSED", GameColor.WHITE, "bold");
       engine.text(0, 180, "press esc to continue", GameColor.WHITE);
     }
+    //display "game over" screen when conditions are met (requirements: 3.3.1)
     function drawOver() {
       engine.cls(get().grid.bg_color);
 
       engine.text(40, 160, "GAME OVER", GameColor.WHITE, "bold");
     }
+    //display "start game" message (or similar) when first loaded up (requirements: 3.3.3)
     function drawStart() {
       engine.text(62, 150, "TETRIS", GameColor.WHITE, "bold");
       engine.text(5, 180, "press enter to begin", GameColor.WHITE);

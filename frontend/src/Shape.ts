@@ -1,5 +1,6 @@
 import { GameColor, Position } from "./Shared";
 
+//game should include all seven standard tetromino shapes (requirements: 3.2.0)
 const GENERIC_SHAPE_OFFSETS: Position[][] = [
   // #
   // #

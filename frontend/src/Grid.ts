@@ -25,7 +25,7 @@ export class Grid {
       const y = currentPositions[i].y - 1;
       //check if it's even entered the board
       if (y >= 0) {
-        // there is something becides an empty space in that grid
+        // there is something besides an empty space in that grid
         this.internalArray[y][x] = color;
       }
     }
@@ -87,7 +87,7 @@ export class Grid {
       const y = currentPositions[i].y;
       //check if it's even entered the board
       if (y >= 0) {
-        // there is something becides an empty space in that grid
+        // there is something besides an empty space in that grid
         if (this.getPosition(x, y) !== this.bg_color) {
           return true;
         }

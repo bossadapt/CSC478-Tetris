@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 import hashlib
 import hmac
 import os
+from pathlib import Path
 
 app = FastAPI()
 SECRET = ""
@@ -69,10 +70,24 @@ def basicTamperCheck(entry: PostLeaderboardRequest):
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     global SECRET
-    load_dotenv("./../frontend/.env")
-    SECRET = os.getenv("REACT_APP_LEADERBOARD_SECRET")
+
+    dotenv_candidates = (
+        Path(__file__).with_name(".env"),
+        Path.cwd() / ".env",
+        Path(__file__).resolve().parent.parent / "frontend" / ".env",
+    )
+    for dotenv_path in dotenv_candidates:
+        if dotenv_path.is_file():
+            load_dotenv(dotenv_path, override=False)
+            break
+
+    SECRET = os.getenv("LEADERBOARD_SECRET") or os.getenv(
+        "REACT_APP_LEADERBOARD_SECRET"
+    )
     if not SECRET:
-        raise RuntimeError("REACT_APP_LEADERBOARD_SECRET missing")
+        raise RuntimeError(
+            "LEADERBOARD_SECRET or REACT_APP_LEADERBOARD_SECRET missing"
+        )
     con, curs = getConCur()
     try:
         curs.execute(
